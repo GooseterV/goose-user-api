@@ -24,6 +24,8 @@ app.config["ENCODE_KEY"] = os.getenv("ENCODING_KEY")
 
 app.config["DATABASE_URL"] = os.getenv("DB_URL")
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URL")
+
 app.config["users"] = [
 
 ]
@@ -49,8 +51,7 @@ def dict_factory(cursor, row):
 def get_users():
 	conn = create_engine(app.config["DATABASE_URL"], echo = False)
 	conn.row_factory = dict_factory
-	c = conn.cursor()
-	c.execute("SELECT * FROM users")
+	c = conn.execute("SELECT * FROM users")
 	usersJSON = c.fetchall() 
 	[d.pop("index") for d in usersJSON]
 	#[d.pop("level_0") for d in usersJSON]
@@ -125,7 +126,6 @@ def create_user():
 		token = jwt_encode(id)
 		app.config["users"].append(user)
 		conn = create_engine(app.config["DATABASE_URL"], echo = False)
-		c = conn.cursor()
 		df = pd.DataFrame([{
 			"name":payload["name"],
 			"id":id,
@@ -169,7 +169,6 @@ def edit_user():
 	userid = payload["userid"]
 	updated_users = [{"name":payload["name"], "id":userid, "created":user["created"], "password":user["password"]} if user["id"] == userid else user for user in all_users]
 	conn = create_engine(app.config["DATABASE_URL"], echo = False)
-	c = conn.cursor()
 	df = pd.DataFrame(updated_users)
 	df.to_sql("users", conn, if_exists="replace")
 	user = list(filter(lambda user: user["id"] == userid, get_users()))[0]
