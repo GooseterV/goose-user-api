@@ -52,8 +52,14 @@ def get_users():
 	conn = create_engine(app.config["DATABASE_URL"], echo = False)
 	conn.row_factory = dict_factory
 	c = conn.execute("SELECT * FROM users")
-	usersJSON = c.fetchall() 
-	[d.pop("index") for d in usersJSON]
+	users = c.mappings().all()
+	usersJSON = [{
+		"name":user["name"],
+		"id":user["id"],
+		"password":user["password"]
+	} for user in users]
+	
+	#[dict(d).pop("index") for d in usersJSON]
 	#[d.pop("level_0") for d in usersJSON]
 	return usersJSON
 
@@ -155,7 +161,7 @@ def get_user():
 @app.route('/users', methods=['GET'])
 @app.route('/users/all', methods=['GET'])
 @token_auth
-@admin_only
+#@admin_only
 def get_all_users():
 	usersJSON = get_users()
 	return json.dumps({"success":True, "data":usersJSON}), 200
