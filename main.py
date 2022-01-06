@@ -175,4 +175,5 @@ def edit_user():
 	user = list(filter(lambda user: user["id"] == userid, get_users()))[0]
 	return json.dumps(user), 200
 
-app.run(port=8000)
+if __name__ == "__main__":
+	app.run()
