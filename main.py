@@ -12,7 +12,7 @@ import pandas as pd
 from functools import wraps
 from flask import Flask, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
-
+from sqlalchemy import create_engine
 
 dotenv.load_dotenv()
 
@@ -21,6 +21,8 @@ dotenv.load_dotenv()
 app = Flask(__name__)
 
 app.config["ENCODE_KEY"] = os.getenv("ENCODING_KEY")
+
+app.config["DATABASE_URL"] = os.getenv("DATABASE_URL")
 
 app.config["users"] = [
 
@@ -45,7 +47,7 @@ def dict_factory(cursor, row):
 	return d
 
 def get_users():
-	conn = sqlite3.connect("py/users.db")
+	conn = create_engine(app.config["DATABASE_URL"], echo = False)
 	conn.row_factory = dict_factory
 	c = conn.cursor()
 	c.execute("SELECT * FROM users")
@@ -122,7 +124,7 @@ def create_user():
 		}
 		token = jwt_encode(id)
 		app.config["users"].append(user)
-		conn = sqlite3.connect("py/users.db")
+		conn = create_engine(app.config["DATABASE_URL"], echo = False)
 		c = conn.cursor()
 		df = pd.DataFrame([{
 			"name":payload["name"],
@@ -166,7 +168,7 @@ def edit_user():
 	head = request.headers
 	userid = payload["userid"]
 	updated_users = [{"name":payload["name"], "id":userid, "created":user["created"], "password":user["password"]} if user["id"] == userid else user for user in all_users]
-	conn = sqlite3.connect("py/users.db")
+	conn = create_engine(app.config["DATABASE_URL"], echo = False)
 	c = conn.cursor()
 	df = pd.DataFrame(updated_users)
 	df.to_sql("users", conn, if_exists="replace")
