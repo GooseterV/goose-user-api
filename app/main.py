@@ -22,7 +22,7 @@ app = Flask(__name__)
 
 app.config["ENCODE_KEY"] = os.getenv("ENCODING_KEY")
 
-app.config["DATABASE_URL"] = os.getenv("DATABASE_URL")
+app.config["DATABASE_URL"] = os.getenv("DB_URL")
 
 app.config["users"] = [
 
